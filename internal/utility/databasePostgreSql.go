@@ -148,3 +148,25 @@ func (databasePostgreSQLConnector *DatabasePostgreSQLConnector) UpdateTableWhere
 	}
 	return int(numRowsAffected), nil
 }
+
+func (databasePostgreSQLConnector *DatabasePostgreSQLConnector) DeleteFromTableWhere(table string, whereClause map[string]string) (int, error) {
+	queryBuilder := "DELETE FROM " + table
+	var whereValues []string
+	var whereParams []interface{}
+	for key, value := range whereClause {
+		whereValues = append(whereValues, fmt.Sprintf("%s=?", key))
+		whereParams = append(whereParams, value)
+	}
+	if len(whereValues) > 0 {
+		queryBuilder += fmt.Sprintf(" WHERE %s", Join(whereValues, " AND "))
+	}
+	result, err := databasePostgreSQLConnector.db.Exec(queryBuilder, whereParams...)
+	if err != nil {
+		return 0, fmt.Errorf("errore durante l'esecuzione della query di eliminazione: %v", err)
+	}
+	numRowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("errore durante l'ottenimento del numero di righe interessate: %v", err)
+	}
+	return int(numRowsAffected), nil
+}

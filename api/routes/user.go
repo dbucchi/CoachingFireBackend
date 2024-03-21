@@ -10,11 +10,6 @@ import (
 )
 
 type UserRoutes struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Role     string `json:"role"`
 }
 
 func NewUser() *UserRoutes {
@@ -63,4 +58,17 @@ func (user *UserRoutes) ModifyUserById(c *gin.Context) {
 
 	c.JSON(http.StatusOK, updateUser.ModifyUserById(id_num))
 
+}
+
+func (user *UserRoutes) DeleteUserById(c *gin.Context) {
+	id := c.Param("id")
+
+	userModel := model.NewUserModel()
+	id_num, err := strconv.Atoi(id)
+	if err != nil {
+		fmt.Println("Error during conversion:", err)
+		return
+	}
+
+	c.JSON(http.StatusOK, userModel.DeleteUserById(id_num))
 }

@@ -52,12 +52,7 @@ func (user *UserModel) AddUser() int {
 	connector.OpenConnection()
 	defer connector.CloseConnection()
 
-	user_map := map[string]string{
-		"username": user.Username,
-		"email":    user.Email,
-		"role":     user.Role,
-		"password": user.Password,
-	}
+	user_map := user.toDto()
 
 	id := connector.InsertIntoTable("users", user_map)
 
@@ -99,11 +94,33 @@ func (user *UserModel) ModifyUserById(id int) int {
 		"id": strconv.Itoa(id),
 	}
 
-	id, err := connector.UpdateTableWhere("users", where_clause, user.toDto())
+	num_rows, err := connector.UpdateTableWhere("users", where_clause, user.toDto())
 
 	if err != nil {
 		panic(err)
 	}
-	return id
 
+	user_map := user.toDto()
+	utility.ApplicationCache.AddElement(user.createCacheKey(id), user_map)
+
+	return num_rows
+
+}
+
+func (user *UserModel) DeleteUserById(id int) int {
+	utility.ApplicationCache.RemoveElement(user.createCacheKey(id))
+
+	connector := utility.NewDatabasePostgreSQLConnector()
+	connector.OpenConnection()
+	defer connector.CloseConnection()
+
+	where_clause := map[string]string{
+		"id": strconv.Itoa(id),
+	}
+
+	num_rows, err := connector.DeleteFromTableWhere("users", where_clause)
+	if err != nil {
+		panic(err)
+	}
+	return num_rows
 }

@@ -11,5 +11,7 @@ func SetupRoutes(router *gin.Engine) {
 
 	router.POST("/api/users", user_api.CreateUserHandler)
 	router.GET("/api/users/:id", user_api.GetUserById)
+	router.PUT("/api/users/:id", user_api.ModifyUserById)
+	router.DELETE("/api/users/:id", user_api.DeleteUserById)
 	// Aggiungi altri endpoint secondo le tue esigenze
 }
