@@ -124,3 +124,25 @@ func (user *UserModel) DeleteUserById(id int) int {
 	}
 	return num_rows
 }
+
+func (user *UserModel) SearchUser() UserModel {
+	connector := utility.NewDatabasePostgreSQLConnector()
+	connector.OpenConnection()
+	defer connector.CloseConnection()
+
+	where_clause := map[string]string{
+		"password": user.Password,
+	}
+	if user.Username != "" {
+		where_clause["username"] = user.Username
+	}
+	if user.Email != "" {
+		where_clause["email"] = user.Email
+	}
+	userMap, err := connector.SelectFromTableWhere("users", where_clause)
+	if err != nil {
+		panic(err)
+	}
+	ret_value, _ := user.fromDto(userMap)
+	return ret_value
+}

@@ -72,3 +72,13 @@ func (user *UserRoutes) DeleteUserById(c *gin.Context) {
 
 	c.JSON(http.StatusOK, userModel.DeleteUserById(id_num))
 }
+
+func (user *UserRoutes) SearchUser(c *gin.Context) {
+	var newUser model.UserModel
+	if err := c.ShouldBindJSON(&newUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, newUser.SearchUser())
+}
