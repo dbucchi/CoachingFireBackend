@@ -10,6 +10,7 @@ import (
 
 func main() {
 	utility.Configuration = *utility.NewConfiguration()
+	utility.ApplicationCache = *utility.NewCache()
 	router := gin.Default()
 
 	routes.SetupRoutes(router)
