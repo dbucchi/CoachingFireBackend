@@ -34,27 +34,40 @@ func (user *UserModel) fromDto(userMap interface{}) (UserModel, error) {
 	return UserModel{}, fmt.Errorf("Map is not a user")
 }
 
-func (user *UserModel) AddUser(username string, email string, password string, role utility.Role) int {
+func (user *UserModel) toDto() map[string]string {
+	return map[string]string{
+		"username": user.Username,
+		"email":    user.Email,
+		"password": user.Password,
+		"role":     user.Role,
+	}
+}
+
+func (user *UserModel) createCacheKey(id int) string {
+	return fmt.Sprintf("users_%d", id)
+}
+
+func (user *UserModel) AddUser() int {
 	connector := utility.NewDatabasePostgreSQLConnector()
 	connector.OpenConnection()
 	defer connector.CloseConnection()
 
 	user_map := map[string]string{
-		"username": username,
-		"email":    email,
-		"role":     utility.GetRoleString(role),
-		"password": password,
+		"username": user.Username,
+		"email":    user.Email,
+		"role":     user.Role,
+		"password": user.Password,
 	}
 
 	id := connector.InsertIntoTable("users", user_map)
 
-	utility.ApplicationCache.AddElement(fmt.Sprintf("users_%d", id), user_map)
+	utility.ApplicationCache.AddElement(user.createCacheKey(id), user_map)
 
 	return id
 }
 
 func (user *UserModel) GetUserById(id int) UserModel {
-	userMap, err := utility.ApplicationCache.GetElement(fmt.Sprintf("users_%d", id))
+	userMap, err := utility.ApplicationCache.GetElement(user.createCacheKey(id))
 	if err == nil {
 		ret_value, _ := user.fromDto(userMap)
 		return ret_value
@@ -73,4 +86,24 @@ func (user *UserModel) GetUserById(id int) UserModel {
 	}
 	ret_value, _ := user.fromDto(userMap)
 	return ret_value
+}
+
+func (user *UserModel) ModifyUserById(id int) int {
+	utility.ApplicationCache.RemoveElement(user.createCacheKey(id))
+
+	connector := utility.NewDatabasePostgreSQLConnector()
+	connector.OpenConnection()
+	defer connector.CloseConnection()
+
+	where_clause := map[string]string{
+		"id": strconv.Itoa(id),
+	}
+
+	id, err := connector.UpdateTableWhere("users", where_clause, user.toDto())
+
+	if err != nil {
+		panic(err)
+	}
+	return id
+
 }

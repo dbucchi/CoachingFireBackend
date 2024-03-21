@@ -2,7 +2,6 @@ package routes
 
 import (
 	"CoachingFireBackend/internal/model"
-	"CoachingFireBackend/internal/utility"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -30,23 +29,38 @@ func (user *UserRoutes) CreateUserHandler(c *gin.Context) {
 		return
 	}
 
-	// Aggiungi la logica di validazione e gestione dell'utente
-	user_model := model.NewUserModel()
-	user_id := user_model.AddUser(newUser.Username, newUser.Email, newUser.Password, utility.Role(newUser.Role))
-
-	c.JSON(http.StatusCreated, user_id)
+	c.JSON(http.StatusCreated, newUser.AddUser())
 }
 
 func (user *UserRoutes) GetUserById(c *gin.Context) {
 	id := c.Param("id")
 
 	// Aggiungi la logica di validazione e gestione dell'utente
-	user_model := model.NewUserModel()
+	userModel := model.NewUserModel()
 	id_num, err := strconv.Atoi(id)
 	if err != nil {
 		fmt.Println("Error during conversion:", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, user_model.GetUserById(id_num))
+	c.JSON(http.StatusOK, userModel.GetUserById(id_num))
+}
+
+func (user *UserRoutes) ModifyUserById(c *gin.Context) {
+	id := c.Param("id")
+
+	var updateUser model.UserModel
+	if err := c.ShouldBindJSON(&updateUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	id_num, err := strconv.Atoi(id)
+	if err != nil {
+		fmt.Println("Error during conversion:", err)
+		return
+	}
+
+	c.JSON(http.StatusOK, updateUser.ModifyUserById(id_num))
+
 }

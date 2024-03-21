@@ -120,3 +120,31 @@ func (databasePostgreSQLConnector *DatabasePostgreSQLConnector) SelectFromTableW
 
 	return results, nil
 }
+
+func (databasePostgreSQLConnector *DatabasePostgreSQLConnector) UpdateTableWhere(table string, whereClause map[string]string, updateFields map[string]string) (int, error) {
+	queryBuilder := "UPDATE " + table + " SET "
+	var setValues []string
+	var updateValues []interface{}
+	for key, value := range updateFields {
+		setValues = append(setValues, fmt.Sprintf("%s=?", key))
+		updateValues = append(updateValues, value)
+	}
+	queryBuilder += fmt.Sprintf("%s ", Join(setValues, ", "))
+	var whereValues []string
+	var whereParams []interface{}
+	for key, value := range whereClause {
+		whereValues = append(whereValues, fmt.Sprintf("%s=?", key))
+		whereParams = append(whereParams, value)
+	}
+	queryBuilder += fmt.Sprintf("WHERE %s ", Join(whereValues, " AND "))
+
+	result, err := databasePostgreSQLConnector.db.Exec(queryBuilder, append(updateValues, whereParams...)...)
+	if err != nil {
+		return 0, fmt.Errorf("errore durante l'esecuzione della query di aggiornamento: %v", err)
+	}
+	numRowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("errore durante l'ottenimento del numero di righe interessate: %v", err)
+	}
+	return int(numRowsAffected), nil
+}
