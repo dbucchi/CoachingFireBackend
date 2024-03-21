@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: coaching_fire
+      CODE_USER: w_coachingfire
+      CODE_PASSWORD: wb9Zqo6ZUv0R
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../database/init.sql:/docker-entrypoint-initdb.d/init.sql
